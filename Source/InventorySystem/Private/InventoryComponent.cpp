@@ -59,7 +59,7 @@ UItemBase* UInventoryComponent::FindNextPartialStack(UItemBase* ItemIn) const
 		return *Result;
 	}
 	return nullptr;
-}
+}	
 
 FItemAddResult UInventoryComponent::HandleAddItem(UItemBase* InputItem)
 {
