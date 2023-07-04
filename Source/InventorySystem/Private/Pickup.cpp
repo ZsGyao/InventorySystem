@@ -104,3 +104,21 @@ void APickup::TakePickup(const AInventorySystemCharacter* Taker)
 		// adjust or destroy the pickup
 	}
 }
+
+void APickup::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	const FName ChangedPropertyName = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+
+	if(ChangedPropertyName == GET_MEMBER_NAME_CHECKED(APickup, DesiredItemID))
+	{
+		if(ItemDataTable)
+		{
+			if(const FItemData* ItemData = ItemDataTable->FindRow<FItemData>(DesiredItemID, DesiredItemID.ToString()))
+			{
+				PickupMesh->SetStaticMesh(ItemData->AssertData.Mesh);
+			}
+		}
+	}
+}
