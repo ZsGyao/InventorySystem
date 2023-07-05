@@ -8,6 +8,7 @@
 #include "InteractionInterface.h"
 #include "InventorySystemCharacter.generated.h"
 
+class UInventoryComponent;
 class AInventorySystemHUD;
 
 USTRUCT()
@@ -64,6 +65,14 @@ public:
 		return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction);
 	}
 
+	FORCEINLINE UInventoryComponent* GetInventory() const { return PlayerInventory;  }
+
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	void UpdateInteractionWidget() const;
 protected:
 	UPROPERTY()
 		AInventorySystemHUD* HUD;
@@ -71,6 +80,9 @@ protected:
 	// 可以保存所有实现了IInteractionInterface接口的实例
 	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
 	TScriptInterface<IInteractionInterface> TargetInteractable;
+
+	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory")
+	UInventoryComponent* PlayerInventory;
 
 	float InteractionCheckFrequency;
 
@@ -96,17 +108,15 @@ protected:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	UFUNCTION(BlueprintCallable)
+	void ToggleMenu();
+
 	void PerformInteractionCheck();
 	void FoundInteractable(AActor* NewInteractable);
 	void NoInteractableFound();
 	void BeginInteract();
 	void EndInteract();
 	void Interact();
-
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
 };
 

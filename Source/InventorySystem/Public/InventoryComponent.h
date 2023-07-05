@@ -106,7 +106,7 @@ public:
 	void RemoveSingleInstanceOfItem(UItemBase* ItemIn);
 
 	UFUNCTION(Category = "Inventory")
-	int32 RemoveAmountOfItem(UItemBase* ItemIn, int32 DesiredAmountToRemove);
+	int32 RemoveAmountOfItem(UItemBase* ItemIn, const int32 DesiredAmountToRemove);
 
 	UFUNCTION(Category = "Inventory")
 	void SplitExistingStack(UItemBase* ItemIn, const int32 AmountToSplit);
@@ -129,13 +129,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Category = "Inventory")
-	FItemAddResult HandleNonStackableItems(UItemBase* ItemIn, int32 RequestedAddAmount);
+	FItemAddResult HandleNonStackableItems(UItemBase* ItemIn);
 	UFUNCTION(Category = "Inventory")
-	int32 HanleStackableItem(UItemBase* ItemIn, int32 RequestedAddAmount);
+	int32 HandleStackableItem(UItemBase* ItemIn, int32 RequestedAddAmount);
 	UFUNCTION(Category = "Inventory")
-	int32 CalculateWeightAddAmount(UItemBase& ItemIn, int32 RequestedAddAmount) const;
+	int32 CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAddAmount) const;
 	UFUNCTION(Category = "Inventory")
-	int32 CalculateNumberForFullStack(UItemBase& ItemIn, int32 InitialRequestedAddAmount) const;
+	int32 CalculateNumberForFullStack(UItemBase* ItemIn, int32 InitialRequestedAddAmount) const;
 	UFUNCTION(Category = "Inventory")
-	void AddNewItem(UItemBase* Item, int32 AMount);
+	void AddNewItem(UItemBase* Item, const int32 AMount);
 };

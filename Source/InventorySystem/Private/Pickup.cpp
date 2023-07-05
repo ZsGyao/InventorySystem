@@ -3,6 +3,7 @@
 
 #include "Pickup.h"
 
+#include "InventoryComponent.h"
 #include "ItemBase.h"
 
 // Sets default values
@@ -97,8 +98,38 @@ void APickup::TakePickup(const AInventorySystemCharacter* Taker)
 {
 	if(!IsPendingKillPending())
 	{
-		// if (UInventoryComponent* PlayerInventory = Taker->GetInventory())
+		if (ItemReference)
+		{
+			if (UInventoryComponent* PlayerInventory = Taker->GetInventory())
+			{
+				const FItemAddResult AddResult = PlayerInventory->HandleAddItem(ItemReference);
 
+				switch (AddResult.OperationResult)
+				{
+				case EItemAddResult::IAR_AllItemAdded:
+					Destroy();
+					break;
+
+				case EItemAddResult::IAR_NoItemAdded:
+					break;
+
+				case EItemAddResult::IAR_PartialItemAdded:
+					UpdateInteractableData();
+					Taker->UpdateInteractionWidget();
+					break;
+				}
+
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *AddResult.ResultMessage.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Player inventory component is nullptr!"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Can not reach, Pickup internal item reference is nullptr!"));
+		}
 		// try to add item to player inventory
 		// based on result of add operation
 		// adjust or destroy the pickup

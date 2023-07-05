@@ -11,7 +11,6 @@ AInventorySystemGameMode::AInventorySystemGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
-		// HUDClass = AInventorySystemHUD::StaticClass();
 	}
 
 	static ConstructorHelpers::FClassFinder<AHUD> PlayInventorySystemBPClass(TEXT("/Game/InventorySystem/Blueprints/BP_InventorySystemHUD"));

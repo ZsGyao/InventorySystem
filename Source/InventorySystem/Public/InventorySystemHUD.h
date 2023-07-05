@@ -7,6 +7,7 @@
 #include "InventorySystemHUD.generated.h"
 
 
+class UInventoryPanel;
 class UMainMenu;
 class UInteractionWidget;
 struct FInteractableData;
@@ -23,17 +24,29 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
 	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 
+	//// new
+	//UPROPERTY(EditDefaultsOnly, Category = "Inventory Widget")
+	//TSubclassOf<UInventoryPanel> InventoryPanelClass;
+
 	bool bIsMenuVisible;
 
+	//// new
+	//bool bIsInventoryPanelVisible;
 public:
 	AInventorySystemHUD();
 
 	void DisplayMenu();
 	void HideMenu();
 
+	void ToggleMenu();
+
 	void ShowInteractionWidget() const;
 	void HideInteractionWidget() const;
 	void UpdateInteractionWidget(const FInteractableData* InteractableData) const;
+
+	//void ShowInventorySystemWidget();
+	//void HideInventorySystemWidget();
+	//void ToggleInventoryMenu();
 
 protected:
 	UPROPERTY()
@@ -42,6 +55,9 @@ protected:
 	UPROPERTY()
 		UInteractionWidget* InteractionWidget;
 
+	// new
+	UPROPERTY()
+		UInventoryPanel* InventoryPanel;
 protected:
 	virtual void BeginPlay() override;
 };

@@ -10,7 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "DrawDebugHelpers.h"
+#include "InventoryComponent.h"
 #include "InventorySystemHUD.h"
+#include "InventoryComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,6 +46,12 @@ AInventorySystemCharacter::AInventorySystemCharacter()
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
+
+	PlayerInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("PlayerInventory"));
+	PlayerInventory->SetSlotsCapacity(20);
+	PlayerInventory->SetWeightCapacity(50);
+
+
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -52,6 +60,7 @@ AInventorySystemCharacter::AInventorySystemCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+
 	InteractionCheckFrequency = 0.1;
 	InteractionCheckDistance = 225.0f;
 
@@ -59,7 +68,7 @@ AInventorySystemCharacter::AInventorySystemCharacter()
 }
 
 
-//////////////////////////////////////////////////////////////////////////
+ //////////////////////////////////////////////////////////////////////////
 // Input
 
 void AInventorySystemCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -81,6 +90,8 @@ void AInventorySystemCharacter::SetupPlayerInputComponent(class UInputComponent*
 
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AInventorySystemCharacter::BeginInteract);
 	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AInventorySystemCharacter::EndInteract);
+
+	PlayerInputComponent->BindAction("ToggleMenu", IE_Pressed, this, &AInventorySystemCharacter::ToggleMenu);
 }
 
 void AInventorySystemCharacter::Move(const FInputActionValue& Value)
@@ -135,7 +146,6 @@ void AInventorySystemCharacter::BeginPlay()
 	}
 
 	HUD = Cast<AInventorySystemHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-	UE_LOG(LogTemp, Warning, TEXT("HUD address is {}"), HUD);
 }
 
 void AInventorySystemCharacter::Tick(float DeltaSeconds)
@@ -148,7 +158,13 @@ void AInventorySystemCharacter::Tick(float DeltaSeconds)
 	}
 }
 
-// 交互检测的过程，根据视角方向和角色前进方向的关系发射射线，检测是否有可交互对象，并根据检测结果调用相应的函数进行处理
+ void AInventorySystemCharacter::ToggleMenu()
+ {
+	 UE_LOG(LogTemp, Warning, TEXT("In to  AInventorySystemCharacter ToggleMenu"));
+	 HUD->ToggleMenu();
+ }
+
+ // 交互检测的过程，根据视角方向和角色前进方向的关系发射射线，检测是否有可交互对象，并根据检测结果调用相应的函数进行处理
 void AInventorySystemCharacter::PerformInteractionCheck()
 {
 	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
@@ -284,6 +300,14 @@ void AInventorySystemCharacter::Interact()
 	}
 }
 
+
+void AInventorySystemCharacter::UpdateInteractionWidget() const
+{
+	if (IsValid(TargetInteractable.GetObject()))
+	{
+		HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
+	}
+}
 
 
 

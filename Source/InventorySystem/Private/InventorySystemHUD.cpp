@@ -5,6 +5,7 @@
 #include "MainMenu.h"
 #include "InteractionWidget.h"
 #include "InteractionInterface.h"
+#include "InventoryPanel.h"
 
 //#ifdef WITH_EDITOR
 //#pragma optimize("", off)
@@ -44,23 +45,56 @@ void AInventorySystemHUD::BeginPlay()
 		InteractionWidget->AddToViewport(-1);
 		InteractionWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
+
+	//// new
+	//if(InventoryPanelClass)
+	//{
+	//	InventoryPanel = CreateWidget<UInventoryPanel>(GetWorld(), InventoryPanelClass);
+	//	InventoryPanel->AddToViewport(-1);
+	//	InventoryPanel->SetVisibility(ESlateVisibility::Collapsed);
+	//}
 }
 
 void AInventorySystemHUD::DisplayMenu()
 {
-	if(MainMenuWidget)
+	UE_LOG(LogTemp, Warning, TEXT("In to Display Menu"));
+	if (MainMenuWidget)
 	{
 		bIsMenuVisible = true;
 		MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
+		UE_LOG(LogTemp, Warning, TEXT("Main Menu already set Visable"));
 	}
+
 }
 
 void AInventorySystemHUD::HideMenu()
 {
+	UE_LOG(LogTemp, Warning, TEXT("In to Hide Menu"));
 	if(MainMenuWidget)
 	{
 		bIsMenuVisible = false;
 		MainMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
+		UE_LOG(LogTemp, Warning, TEXT("Main Menu already set Collapsed"));
+	}
+
+}
+
+void AInventorySystemHUD::ToggleMenu()
+{
+	if(bIsMenuVisible)
+	{
+		 HideMenu();
+		
+		const FInputModeGameOnly InputMode;
+		GetOwningPlayerController()->SetInputMode(InputMode);
+		GetOwningPlayerController()->SetShowMouseCursor(false);
+	}
+	else
+	{
+		DisplayMenu();
+		const FInputModeGameAndUI InputMode;
+		GetOwningPlayerController()->SetInputMode(InputMode);
+		GetOwningPlayerController()->SetShowMouseCursor(true);
 	}
 }
 
@@ -92,6 +126,45 @@ void AInventorySystemHUD::UpdateInteractionWidget(const FInteractableData* Inter
 		InteractionWidget->UpdateWidget(InteractableData);
 	}
 }
+
+//void AInventorySystemHUD::ShowInventorySystemWidget() 
+//{
+//	// new
+//	if (InventoryPanel)
+//	{
+//		bIsInventoryPanelVisible = true;
+//		InventoryPanel->SetVisibility(ESlateVisibility::Visible);
+//	}
+//}
+//
+//void AInventorySystemHUD::HideInventorySystemWidget()
+//{
+//	// new
+//	if (InventoryPanel)
+//	{
+//		bIsInventoryPanelVisible = false;
+//		InventoryPanel->SetVisibility(ESlateVisibility::Collapsed);
+//	}
+//}
+//
+//void AInventorySystemHUD::ToggleInventoryMenu()
+//{
+//	if (bIsInventoryPanelVisible)
+//	{
+//		HideInventorySystemWidget();
+//
+//		const FInputModeGameOnly InputMode;
+//		GetOwningPlayerController()->SetInputMode(InputMode);
+//		GetOwningPlayerController()->SetShowMouseCursor(false);
+//	}
+//	else
+//	{
+//		ShowInventorySystemWidget();
+//		const FInputModeGameAndUI InputMode;
+//		GetOwningPlayerController()->SetInputMode(InputMode);
+//		GetOwningPlayerController()->SetShowMouseCursor(true);
+//	}
+//}
 
 
 //#ifdef WITH_EDITOR

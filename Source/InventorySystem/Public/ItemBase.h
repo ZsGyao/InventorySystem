@@ -7,17 +7,17 @@
 #include "InventorySystemCharacter.h"
 #include "ItemBase.generated.h"
 
-/**
- * 
- */
+
+class UInventoryComponent;
+
 UCLASS()
 class INVENTORYSYSTEM_API UItemBase : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	/*UPROPERTY()
-		UInventoryComponent* OwningInventory;*/
+	UPROPERTY()
+		UInventoryComponent* OwningInventory;
 
 	UPROPERTY(VisibleAnywhere, Category = "Item")
 		int32 Quantity;
@@ -43,10 +43,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Item")
 		FItemAssertData AssertData;
 
+	bool bIsCopy;
+	bool bIsPickup;
+
 public:
 	UItemBase();
 
 	UItemBase* CreateItemCopy() const;
+
+	void ResetItemFlags();
 
 	UFUNCTION(Category="Item")
 	FORCEINLINE float GetItemStackWeight() const
