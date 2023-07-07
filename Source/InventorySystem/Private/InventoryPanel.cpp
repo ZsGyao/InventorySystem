@@ -7,6 +7,8 @@
 #include "InventoryItemSlot.h"
 #include "InventorySystemCharacter.h"
 #include "ItemBase.h"
+#include "ItemDragDropOperation.h"
+#include "Components/GridPanel.h"
 #include "Components/TextBlock.h"
 #include "Components/WrapBox.h"
 
@@ -41,15 +43,37 @@ void UInventoryPanel::RefreshInventory()
 {
 	if(InventoryReference && InventorySlotClass)
 	{
-		InventoryPanel->ClearChildren();
-
-		for(UItemBase* const& InventoryItem : InventoryReference->GetInventoryContents())
+		// InventoryPanel->ClearChildren();
+		while(InventoryGridPanel->GetChildrenCount() > 0)
 		{
-			UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
-			ItemSlot->SetItemReference(InventoryItem);
-
-			InventoryPanel->AddChildToWrapBox(ItemSlot);
+			UWidget* ChildWidget = InventoryGridPanel->GetChildAt(0);
+			InventoryGridPanel->RemoveChild(ChildWidget);
+			ChildWidget->RemoveFromParent();
 		}
+
+		const int32 NumColumns = 4;
+
+		for (int32 Index = 0; Index < InventoryReference->GetInventoryContents().Num(); Index++)
+		{
+			const int32 ItemNumRows = Index / NumColumns;
+			const int32 ItemNumColumns = Index % NumColumns;
+
+			UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
+
+			ItemSlot->SetColumnNum(ItemNumColumns);
+			ItemSlot->SetRowNum(ItemNumRows);
+
+			ItemSlot->SetItemReference(InventoryReference->GetInventoryContents()[Index]);
+			InventoryGridPanel->AddChildToGrid(ItemSlot, ItemNumRows, ItemNumColumns);
+		}
+
+		//for(UItemBase* const& InventoryItem : InventoryReference->GetInventoryContents())
+		//{
+		//	UInventoryItemSlot* ItemSlot = CreateWidget<UInventoryItemSlot>(this, InventorySlotClass);
+		//	ItemSlot->SetItemReference(InventoryItem);
+		//	InventoryGridPanel->AddChildToGrid(ItemSlot, Ite);
+		////	InventoryPanel->AddChildToWrapBox(ItemSlot);
+		//}
 		SetInfoText();
 	}
 }
@@ -57,5 +81,18 @@ void UInventoryPanel::RefreshInventory()
 bool UInventoryPanel::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent,
 	UDragDropOperation* InOperation)
 {
-	return Super::NativeOnDrop(InGeometry, InDragDropEvent, InOperation);
+	const UItemDragDropOperation* ItemDragDrop = Cast<UItemDragDropOperation>(InOperation);
+
+	if(ItemDragDrop->SourceItem && InventoryReference)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Detected an item drop on InventoryPanel."))
+
+		if(ItemDragDrop->SourceInventory == PlayerCharacter->GetWorldInventory())
+		{
+			PlayerCharacter->DropItemFromWorldPanelToPlayPanel(ItemDragDrop->SourceItem, ItemDragDrop->SourceItem->Quantity);
+		}
+
+		return true;
+	}
+	return false;
 }

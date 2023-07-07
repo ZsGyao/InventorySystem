@@ -17,7 +17,7 @@ class INVENTORYSYSTEM_API UDragItemVisual : public UUserWidget
 {
 	GENERATED_BODY()
 
-protected:
+public:
 	UPROPERTY(EditAnywhere, Category = "Drag Item Visual", meta = (BindWidget))
 		UBorder* ItemBorder;
 

@@ -39,9 +39,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Inventory Slot", meta = (BindWidget))
 		UTextBlock* ItemQuantity;
 
+	int32 RowNum;
+	int32 ColumnNum;
 public:
 	FORCEINLINE void SetItemReference(UItemBase* ItemIn) { ItemReference = ItemIn; }
 	FORCEINLINE UItemBase* GetItemReference() const { return ItemReference; }
+
+	FORCEINLINE int32 GetRowNum() const { return RowNum; }
+	FORCEINLINE int32 GetColumnNum() const { return ColumnNum; }
+	FORCEINLINE void SetRowNum(const int32 RowNum1) { this->RowNum = RowNum1; }
+	FORCEINLINE void SetColumnNum(const int32 ColumnNum1) { this->ColumnNum = ColumnNum1; }
 
 protected:
 	virtual void NativeOnInitialized() override;

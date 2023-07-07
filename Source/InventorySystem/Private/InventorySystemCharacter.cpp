@@ -13,9 +13,12 @@
 #include "InventoryComponent.h"
 #include "InventorySystemHUD.h"
 #include "InventoryComponent.h"
+#include "ItemBase.h"
+#include "Pickup.h"
+#include "Components/TimelineComponent.h"
 
 
-//////////////////////////////////////////////////////////////////////////
+ //////////////////////////////////////////////////////////////////////////
 // AInventorySystemCharacter
 
 AInventorySystemCharacter::AInventorySystemCharacter()
@@ -43,7 +46,7 @@ AInventorySystemCharacter::AInventorySystemCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 
@@ -51,6 +54,11 @@ AInventorySystemCharacter::AInventorySystemCharacter()
 	PlayerInventory->SetSlotsCapacity(20);
 	PlayerInventory->SetWeightCapacity(50);
 
+	// ----------------------------
+	WorldInventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("WorldInventory"));
+	WorldInventory->SetSlotsCapacity(50);
+	WorldInventory->SetWeightCapacity(150);
+	// ----------------------------
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -60,6 +68,10 @@ AInventorySystemCharacter::AInventorySystemCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	AimingCameraTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("AimingCameraTimeline"));
+	DefaultCameraLocation = FVector{ 0.0f, 0.0f, 65.0f };
+	AimingCameraLocation = FVector{ 175.0f, 50.0f, 55.0f };
+	CameraBoom->SocketOffset = DefaultCameraLocation;
 
 	InteractionCheckFrequency = 0.1;
 	InteractionCheckDistance = 225.0f;
@@ -92,6 +104,9 @@ void AInventorySystemCharacter::SetupPlayerInputComponent(class UInputComponent*
 	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AInventorySystemCharacter::EndInteract);
 
 	PlayerInputComponent->BindAction("ToggleMenu", IE_Pressed, this, &AInventorySystemCharacter::ToggleMenu);
+
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AInventorySystemCharacter::Aim);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AInventorySystemCharacter::StopAiming);
 }
 
 void AInventorySystemCharacter::Move(const FInputActionValue& Value)
@@ -146,6 +161,17 @@ void AInventorySystemCharacter::BeginPlay()
 	}
 
 	HUD = Cast<AInventorySystemHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+
+	FOnTimelineFloat AimLerpAlphaValue;
+	FOnTimelineEvent TimelineFinishedEvent;
+	AimLerpAlphaValue.BindUFunction(this, FName("UpdateCameraTimeline"));
+	TimelineFinishedEvent.BindUFunction(this, FName("CameraTimelineEnd"));
+
+	if(AimingCameraTimeline && AimingCameraCurve)
+	{
+		AimingCameraTimeline->AddInterpFloat(AimingCameraCurve, AimLerpAlphaValue);
+		AimingCameraTimeline->SetTimelineFinishedFunc(TimelineFinishedEvent);
+	}
 }
 
 void AInventorySystemCharacter::Tick(float DeltaSeconds)
@@ -160,9 +186,58 @@ void AInventorySystemCharacter::Tick(float DeltaSeconds)
 
  void AInventorySystemCharacter::ToggleMenu()
  {
-	 UE_LOG(LogTemp, Warning, TEXT("In to  AInventorySystemCharacter ToggleMenu"));
+	 UE_LOG(LogTemp, Warning, TEXT("In to AInventorySystemCharacter ToggleMenu"));
 	 HUD->ToggleMenu();
  }
+
+ void AInventorySystemCharacter::Aim()
+ {
+	 if(!HUD->bIsMenuVisible)
+	 {
+		 bAiming = true;
+		 bUseControllerRotationYaw = true;
+		 GetCharacterMovement()->MaxWalkSpeed = 200.0f;
+
+		if(AimingCameraTimeline)
+		{
+			AimingCameraTimeline->PlayFromStart();
+		}
+	 }
+ }
+
+ void AInventorySystemCharacter::StopAiming()
+ {
+	 if (bAiming)
+	 {
+		 bAiming = false;
+		 bUseControllerRotationYaw = false;
+		 HUD->HideCrosshair();
+		 GetCharacterMovement()->MaxWalkSpeed = 500.0f;
+
+		 if (AimingCameraTimeline)
+		 {
+			 AimingCameraTimeline->Reverse();
+		 }
+	 }
+ }
+
+ void AInventorySystemCharacter::UpdateCameraTimeline(const float TimelineValue) const
+ {
+	 const FVector CameraLocation = FMath::Lerp(DefaultCameraLocation, AimingCameraLocation, TimelineValue);
+	 CameraBoom->SocketOffset = CameraLocation;
+ }
+
+ void AInventorySystemCharacter::CameraTimelineEnd()
+ {
+	 if(AimingCameraTimeline)
+	 {
+		 if(AimingCameraTimeline->GetPlaybackPosition() != 0.0f)
+		 {
+			  HUD->ShowCrosshair();
+		 }
+	 }
+ }
+
 
  // 交互检测的过程，根据视角方向和角色前进方向的关系发射射线，检测是否有可交互对象，并根据检测结果调用相应的函数进行处理
 void AInventorySystemCharacter::PerformInteractionCheck()
@@ -170,6 +245,19 @@ void AInventorySystemCharacter::PerformInteractionCheck()
 	InteractionData.LastInteractionCheckTime = GetWorld()->GetTimeSeconds();
 
 	FVector TraceStart{ GetPawnViewLocation() };
+	
+
+	if(!bAiming)
+	{
+		InteractionCheckDistance = 200.0f;
+		TraceStart = GetPawnViewLocation();
+	}
+	else
+	{
+		InteractionCheckDistance = 250.0f;
+		TraceStart = FollowCamera->GetComponentLocation();
+	}
+
 	FVector TraceEnd{ TraceStart + (GetViewRotation().Vector() * InteractionCheckDistance) };
 
 	float LookDirection = FVector::DotProduct(GetActorForwardVector(), GetViewRotation().Vector());
@@ -206,6 +294,7 @@ void AInventorySystemCharacter::PerformInteractionCheck()
 	NoInteractableFound();
 }
 
+// 找到了可交互的对象
 void AInventorySystemCharacter::FoundInteractable(AActor* NewInteractable)
 {
 	if(IsInteracting())
@@ -308,6 +397,64 @@ void AInventorySystemCharacter::UpdateInteractionWidget() const
 		HUD->UpdateInteractionWidget(&TargetInteractable->InteractableData);
 	}
 }
+
+ void AInventorySystemCharacter::DropItem(UItemBase* ItemToDrop, const int32 Quantity)
+ {
+	 if(PlayerInventory->FindMatchingItem(ItemToDrop))
+	 {
+		 FActorSpawnParameters SpawnParams;
+		 SpawnParams.Owner = this;
+		 SpawnParams.bNoFail = true;
+		 SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		 const FVector SpawnLocation{ GetActorLocation() + (GetActorForwardVector() * 50.0f) };
+		 const FTransform SpawnTransform(GetActorRotation(), SpawnLocation);
+
+		 const int32 RemoveQuantity = PlayerInventory->RemoveAmountOfItem(ItemToDrop, Quantity);
+
+		 APickup* Pickup = GetWorld()->SpawnActor<APickup>(APickup::StaticClass(), SpawnTransform, SpawnParams);
+
+		 Pickup->InitializeDrop(ItemToDrop, RemoveQuantity);
+	 }
+	 else if (WorldInventory->FindMatchingItem(ItemToDrop))
+	 {
+		 FActorSpawnParameters SpawnParams;
+		 SpawnParams.Owner = this;
+		 SpawnParams.bNoFail = true;
+		 SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+		 const FVector SpawnLocation{ GetActorLocation() + (GetActorForwardVector() * 50.0f) };
+		 const FTransform SpawnTransform(GetActorRotation(), SpawnLocation);
+
+		 const int32 RemoveQuantity = PlayerInventory->RemoveAmountOfItem(ItemToDrop, Quantity);
+
+		 APickup* Pickup = GetWorld()->SpawnActor<APickup>(APickup::StaticClass(), SpawnTransform, SpawnParams);
+
+		 Pickup->InitializeDrop(ItemToDrop, RemoveQuantity);
+	 }
+	 else
+	 {
+		 UE_LOG(LogTemp, Warning, TEXT("Item to drop is nullptr!"));
+	 }
+ }
+
+ void AInventorySystemCharacter::DropItemFromPlayPanelToWorldPanel(UItemBase* ItemDrop, const int32 Quantity)
+ {
+	 if(PlayerInventory->FindMatchingItem(ItemDrop))
+	 {
+		 auto ActualAmountToRemove = PlayerInventory->RemoveAmountOfItem(ItemDrop, Quantity);
+		 WorldInventory->AddNewItem(ItemDrop, ActualAmountToRemove);
+	 }
+ }
+
+ void AInventorySystemCharacter::DropItemFromWorldPanelToPlayPanel(UItemBase* ItemDrop, const int32 Quantity)
+ {
+	if(WorldInventory->FindMatchingItem(ItemDrop))
+	{
+		auto ActualAmountToRemove = WorldInventory->RemoveAmountOfItem(ItemDrop, Quantity);
+		PlayerInventory->AddNewItem(ItemDrop, ActualAmountToRemove);
+	}
+ }
 
 
 

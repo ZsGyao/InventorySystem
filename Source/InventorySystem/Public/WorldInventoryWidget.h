@@ -1,32 +1,27 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "InventoryPanel.generated.h"
+#include "WorldInventoryWidget.generated.h"
 
-class UGridPanel;
-class UTextBlock;
-class UWrapBox;
 class UInventoryItemSlot;
 class UInventoryComponent;
 class AInventorySystemCharacter;
+class UTextBlock;
+class UWrapBox;
 /**
  * 
  */
 UCLASS()
-class INVENTORYSYSTEM_API UInventoryPanel : public UUserWidget
+class INVENTORYSYSTEM_API UWorldInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
-	// UWrapBox是线性布局容器 用于在水平或垂直方向上自动排列子控件。它按顺序放置子控件，并在空间不足时自动换行或换列
-	/*UPROPERTY(meta = (BindWidget))
-	UWrapBox* InventoryPanel;*/
-
 	UPROPERTY(meta = (BindWidget))
-		UGridPanel* InventoryGridPanel;
+		UWrapBox* InventoryPanel;
 
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* WeightInfo;
@@ -42,10 +37,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<UInventoryItemSlot> InventorySlotClass;
-
 public:
 	UFUNCTION()
-	void RefreshInventory();
+		void RefreshInventory();
 
 protected:
 	void SetInfoText() const;

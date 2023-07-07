@@ -5,7 +5,8 @@
 #include "MainMenu.h"
 #include "InteractionWidget.h"
 #include "InteractionInterface.h"
-#include "InventoryPanel.h"
+#include "WorldInventoryWidget.h"
+#include "InventorySystemCharacter.h"
 
 //#ifdef WITH_EDITOR
 //#pragma optimize("", off)
@@ -13,19 +14,7 @@
 
 AInventorySystemHUD::AInventorySystemHUD()
 {
-	//if(MainMenuClass)
-	//{
-	//	MainMenuWidget = CreateWidget<UMainMenu>(GetWorld(), MainMenuClass);
-	//	MainMenuWidget->AddToViewport(5);
-	//	MainMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
-	//}
-
-	//if(InteractionWidgetClass)
-	//{
-	//	InteractionWidget = CreateWidget<UInteractionWidget>(GetWorld(), InteractionWidgetClass);
-	//	InteractionWidget->AddToViewport(-1);
-	//	InteractionWidget->SetVisibility(ESlateVisibility::Collapsed);
-	//}
+	
 }
 
 void AInventorySystemHUD::BeginPlay()
@@ -46,13 +35,20 @@ void AInventorySystemHUD::BeginPlay()
 		InteractionWidget->SetVisibility(ESlateVisibility::Collapsed);
 	}
 
-	//// new
-	//if(InventoryPanelClass)
-	//{
-	//	InventoryPanel = CreateWidget<UInventoryPanel>(GetWorld(), InventoryPanelClass);
-	//	InventoryPanel->AddToViewport(-1);
-	//	InventoryPanel->SetVisibility(ESlateVisibility::Collapsed);
-	//}
+	if (CrosshairWidgetClass)
+	{
+		CrosshairWidget = CreateWidget<UUserWidget>(GetWorld(), CrosshairWidgetClass);
+		CrosshairWidget->AddToViewport();
+		CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	if(WorldInventoryWidgetClass)
+	{
+		WorldInventoryWidget = CreateWidget<UWorldInventoryWidget>(GetWorld(), WorldInventoryWidgetClass);
+		WorldInventoryWidget->AddToViewport(4);
+		WorldInventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 }
 
 void AInventorySystemHUD::DisplayMenu()
@@ -127,44 +123,43 @@ void AInventorySystemHUD::UpdateInteractionWidget(const FInteractableData* Inter
 	}
 }
 
-//void AInventorySystemHUD::ShowInventorySystemWidget() 
-//{
-//	// new
-//	if (InventoryPanel)
-//	{
-//		bIsInventoryPanelVisible = true;
-//		InventoryPanel->SetVisibility(ESlateVisibility::Visible);
-//	}
-//}
-//
-//void AInventorySystemHUD::HideInventorySystemWidget()
-//{
-//	// new
-//	if (InventoryPanel)
-//	{
-//		bIsInventoryPanelVisible = false;
-//		InventoryPanel->SetVisibility(ESlateVisibility::Collapsed);
-//	}
-//}
-//
-//void AInventorySystemHUD::ToggleInventoryMenu()
-//{
-//	if (bIsInventoryPanelVisible)
-//	{
-//		HideInventorySystemWidget();
-//
-//		const FInputModeGameOnly InputMode;
-//		GetOwningPlayerController()->SetInputMode(InputMode);
-//		GetOwningPlayerController()->SetShowMouseCursor(false);
-//	}
-//	else
-//	{
-//		ShowInventorySystemWidget();
-//		const FInputModeGameAndUI InputMode;
-//		GetOwningPlayerController()->SetInputMode(InputMode);
-//		GetOwningPlayerController()->SetShowMouseCursor(true);
-//	}
-//}
+void AInventorySystemHUD::ShowCrosshair()
+{
+	if(CrosshairWidget)
+	{
+		CrosshairWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AInventorySystemHUD::HideCrosshair()
+{
+	if (CrosshairWidget)
+	{
+		CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AInventorySystemHUD::ShowOrHidePanelWidget()
+{
+	if (!bIsPanelVisible)
+	{
+		WorldInventoryWidget->SetVisibility(ESlateVisibility::Visible);
+		bIsPanelVisible = true;
+	}
+	else
+	{
+		WorldInventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
+		bIsPanelVisible = false;
+	}
+}
+
+void AInventorySystemHUD::ShowOrHideMMInventoryVisible() const
+{
+	if(MainMenuWidget)
+	{
+		MainMenuWidget->SetWorldInventoryWidgetVisibility();
+	}
+}
 
 
 //#ifdef WITH_EDITOR

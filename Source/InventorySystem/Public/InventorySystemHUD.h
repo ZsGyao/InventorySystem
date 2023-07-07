@@ -7,7 +7,8 @@
 #include "InventorySystemHUD.generated.h"
 
 
-class UInventoryPanel;
+class UWorldInventoryWidget;
+class AInventorySystemCharacter;
 class UMainMenu;
 class UInteractionWidget;
 struct FInteractableData;
@@ -19,19 +20,22 @@ class INVENTORYSYSTEM_API AInventorySystemHUD : public AHUD
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
-	TSubclassOf<UMainMenu> MainMenuClass;
+		TSubclassOf<UMainMenu> MainMenuClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
-	TSubclassOf<UInteractionWidget> InteractionWidgetClass;
+		TSubclassOf<UInteractionWidget> InteractionWidgetClass;
 
-	//// new
-	//UPROPERTY(EditDefaultsOnly, Category = "Inventory Widget")
-	//TSubclassOf<UInventoryPanel> InventoryPanelClass;
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets")
+		TSubclassOf<UUserWidget> CrosshairWidgetClass;
+
+	// new
+	UPROPERTY(EditDefaultsOnly, Category = "World Widgets")
+		TSubclassOf<UWorldInventoryWidget> WorldInventoryWidgetClass;
 
 	bool bIsMenuVisible;
 
-	//// new
-	//bool bIsInventoryPanelVisible;
+	// new
+	bool bIsPanelVisible;
 public:
 	AInventorySystemHUD();
 
@@ -44,10 +48,14 @@ public:
 	void HideInteractionWidget() const;
 	void UpdateInteractionWidget(const FInteractableData* InteractableData) const;
 
-	//void ShowInventorySystemWidget();
-	//void HideInventorySystemWidget();
-	//void ToggleInventoryMenu();
+	void ShowCrosshair();
+	void HideCrosshair();
 
+	void ShowOrHidePanelWidget();
+
+	void ShowOrHideMMInventoryVisible() const;
+
+	FORCEINLINE UMainMenu* GetMainMenu() const { return MainMenuWidget; }
 protected:
 	UPROPERTY()
 		UMainMenu* MainMenuWidget;
@@ -55,9 +63,12 @@ protected:
 	UPROPERTY()
 		UInteractionWidget* InteractionWidget;
 
-	// new
 	UPROPERTY()
-		UInventoryPanel* InventoryPanel;
+		UUserWidget* CrosshairWidget;
+
+	UPROPERTY()
+		UWorldInventoryWidget* WorldInventoryWidget;
+
 protected:
 	virtual void BeginPlay() override;
 };

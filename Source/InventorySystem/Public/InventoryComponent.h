@@ -136,6 +136,8 @@ protected:
 	int32 CalculateWeightAddAmount(UItemBase* ItemIn, int32 RequestedAddAmount) const;
 	UFUNCTION(Category = "Inventory")
 	int32 CalculateNumberForFullStack(UItemBase* ItemIn, int32 InitialRequestedAddAmount) const;
+
+public:
 	UFUNCTION(Category = "Inventory")
 	void AddNewItem(UItemBase* Item, const int32 AMount);
 };

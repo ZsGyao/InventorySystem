@@ -7,6 +7,9 @@
 #include "MainMenu.generated.h"
 
 
+class UInventoryPanel;
+class UGridWidget;
+class UWorldInventoryWidget;
 class AInventorySystemCharacter;
 
 UCLASS()
@@ -17,6 +20,20 @@ class INVENTORYSYSTEM_API UMainMenu : public UUserWidget
 public:
 	UPROPERTY()
 		AInventorySystemCharacter* PlayerCharacter;
+
+	UPROPERTY(meta = (BindWidget))
+		UWorldInventoryWidget* WorldInventoryWidget;
+
+	UPROPERTY(meta = (BindWidget))
+		UInventoryPanel* PlayerInventoryPanel;
+
+	//UPROPERTY(meta = (BindWidget))
+	//	UGridWidget* GridWidget;
+
+	bool bIsWorldInventoryVisbal;
+
+public:
+	void SetWorldInventoryWidgetVisibility();
 
 protected:
 	virtual void NativeConstruct() override;

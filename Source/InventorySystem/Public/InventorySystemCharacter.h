@@ -8,6 +8,8 @@
 #include "InteractionInterface.h"
 #include "InventorySystemCharacter.generated.h"
 
+class UTimelineComponent;
+class UItemBase;
 class UInventoryComponent;
 class AInventorySystemHUD;
 
@@ -58,14 +60,48 @@ class AInventorySystemCharacter : public ACharacter
 	class UInputAction* LookAction;
 
 public:
+	bool bAiming;
+
+protected:
+	UPROPERTY()
+		AInventorySystemHUD* HUD;
+
+	// 可以保存所有实现了IInteractionInterface接口的实例
+	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
+		TScriptInterface<IInteractionInterface> TargetInteractable;
+
+	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory")
+		UInventoryComponent* PlayerInventory;
+
+	// new the Inventory in world, Inventory Actor
+	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory In World Actor")
+		UInventoryComponent* WorldInventory;
+
+	// interaction properties
+	float InteractionCheckFrequency;
+	float InteractionCheckDistance;
+	//管理和控制计时器的结构体
+	FTimerHandle TimerHandle_Interaction;
+	FInteractionData InteractionData;
+
+	// timeline properties used for camera aiming transiting
+	UPROPERTY(VisibleAnywhere, Category = "Character | Camera")
+		FVector DefaultCameraLocation;
+	UPROPERTY(VisibleAnywhere, Category = "Character | Camera")
+		FVector AimingCameraLocation;
+
+	TObjectPtr<UTimelineComponent> AimingCameraTimeline;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character | Aim Timeline")
+		UCurveFloat* AimingCameraCurve;
+
+public:
 	AInventorySystemCharacter();
 	
-	FORCEINLINE bool IsInteracting() const
-	{
-		return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction);
-	}
+	FORCEINLINE bool IsInteracting() const { return GetWorldTimerManager().IsTimerActive(TimerHandle_Interaction); }
 
 	FORCEINLINE UInventoryComponent* GetInventory() const { return PlayerInventory;  }
+	FORCEINLINE UInventoryComponent* GetWorldInventory() const { return WorldInventory; }
 
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -73,26 +109,12 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	void UpdateInteractionWidget() const;
-protected:
-	UPROPERTY()
-		AInventorySystemHUD* HUD;
 
-	// 可以保存所有实现了IInteractionInterface接口的实例
-	UPROPERTY(VisibleAnywhere, Category = "Character | Interaction")
-	TScriptInterface<IInteractionInterface> TargetInteractable;
+	void DropItem(UItemBase* ItemToDrop, const int32 Quantity);
 
-	UPROPERTY(VisibleAnywhere, Category = "Character | Inventory")
-	UInventoryComponent* PlayerInventory;
+	void DropItemFromPlayPanelToWorldPanel(UItemBase* ItemDrop, const int32 Quantity);
 
-	float InteractionCheckFrequency;
-
-	float InteractionCheckDistance;
-
-	//管理和控制计时器的结构体
-	FTimerHandle TimerHandle_Interaction;
-
-	FInteractionData InteractionData;
-
+	void DropItemFromWorldPanelToPlayPanel(UItemBase* ItemDrop, const int32 Quantity);
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -108,8 +130,14 @@ protected:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintCallable)
 	void ToggleMenu();
+
+	void Aim();
+	void StopAiming();
+	UFUNCTION()
+	void UpdateCameraTimeline(float TimelineValue) const;
+	UFUNCTION()
+	void CameraTimelineEnd();
 
 	void PerformInteractionCheck();
 	void FoundInteractable(AActor* NewInteractable);
