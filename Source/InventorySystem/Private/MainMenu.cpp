@@ -57,3 +57,62 @@ bool UMainMenu::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& 
 	}
 	return false;
 }
+
+FReply UMainMenu::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+
+	// UE_LOG(LogTemp, Warning, TEXT("Into Main Menu NativeOnMouseMove"));
+
+	// 不管在哪都可以检测到位置
+	FVector2D MousePosition = FVector2D();
+	GetCursorPosition(MousePosition);
+
+	if (PlayerInventoryPanel->bIsDragging)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Into Main Menu NativeOnMouseMove, bIsDragging is {%d};"), PlayerInventoryPanel->bIsDragging);
+
+		UpdateDragging();
+		// return FReply::Handled();
+		return FReply::Unhandled();
+	}
+	return FReply::Unhandled();
+}
+
+
+void UMainMenu::UpdateDragging()
+{
+
+	FVector2D MousePosition = FVector2D();
+	GetCursorPosition(MousePosition);
+
+	PlayerCharacter->CursorMousePosition = MousePosition;
+
+	UE_LOG(LogTemp, Warning, TEXT("Save MousePosition to Character， the MousePosition.X: {%f}, Y: {%f}"), MousePosition.X, MousePosition.Y);
+
+	if(!PlayerInventoryPanel->bIsInViewpoint) 
+	{
+		PlayerInventoryPanel->RemoveFromParent();
+		PlayerInventoryPanel->AddToViewport(300);
+		PlayerInventoryPanel->bIsInViewpoint = true;
+	}
+
+	PlayerInventoryPanel->SetPositionInViewport(MousePosition);
+	UE_LOG(LogTemp, Warning, TEXT("PlayerInventoryPanel is in {%p} --- should in Viewport"), PlayerInventoryPanel->GetParent());
+}
+//
+void UMainMenu::GetCursorPosition(FVector2D& MousePosition) const
+{
+	APlayerController* pc = GetWorld()->GetFirstPlayerController();
+	if (pc)
+	{
+		ULocalPlayer* LocalPlayer = pc->GetLocalPlayer();
+		if (LocalPlayer && LocalPlayer->ViewportClient)
+		{
+			if (LocalPlayer->ViewportClient->GetMousePosition(MousePosition))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Cursor.position X :  %f , Y : %f"), MousePosition.X, MousePosition.Y);
+			}
+		}
+	}
+}
+
