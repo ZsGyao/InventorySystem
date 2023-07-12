@@ -27,10 +27,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 		UInventoryPanel* PlayerInventoryPanel;
 
-	//UPROPERTY(meta = (BindWidget))
-	//	UGridWidget* GridWidget;
-
 	bool bIsWorldInventoryVisbal;
+
+	bool bIsDragging;
 
 public:
 	void SetWorldInventoryWidgetVisibility();
@@ -39,4 +38,11 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeOnInitialized() override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
+	void UpdateDragging();
+
+public:
+	void GetCursorPosition(FVector2D& MousePosition) const;
 };
