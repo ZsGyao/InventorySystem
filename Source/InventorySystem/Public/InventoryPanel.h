@@ -46,6 +46,7 @@ public:
 	bool bIsDragging;
 
 	bool bIsInViewpoint;
+
 public:
 	UFUNCTION()
 	void RefreshInventory();
