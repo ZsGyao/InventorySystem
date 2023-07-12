@@ -62,6 +62,8 @@ class AInventorySystemCharacter : public ACharacter
 public:
 	bool bAiming;
 
+	FVector2D CursorMousePosition;
+
 protected:
 	UPROPERTY()
 		AInventorySystemHUD* HUD;
