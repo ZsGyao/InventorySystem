@@ -26,6 +26,7 @@ void AInventorySystemHUD::BeginPlay()
 		MainMenuWidget = CreateWidget<UMainMenu>(GetWorld(), MainMenuClass);
 		MainMenuWidget->AddToViewport(5);
 		MainMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
+		PlayerInventoryPanel = MainMenuWidget->PlayerInventoryPanel;
 	}
 
 	if (InteractionWidgetClass)
@@ -59,6 +60,8 @@ void AInventorySystemHUD::DisplayMenu()
 		bIsMenuVisible = true;
 		MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
 		UE_LOG(LogTemp, Warning, TEXT("Main Menu already set Visable"));
+		PlayerInventoryPanel->SetVisibility(ESlateVisibility::Visible);
+		UE_LOG(LogTemp, Warning, TEXT("The PlayerInventoryPanel in HUD already set Visable"));
 	}
 
 }
@@ -71,6 +74,8 @@ void AInventorySystemHUD::HideMenu()
 		bIsMenuVisible = false;
 		MainMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
 		UE_LOG(LogTemp, Warning, TEXT("Main Menu already set Collapsed"));
+		PlayerInventoryPanel->SetVisibility(ESlateVisibility::Collapsed);
+		UE_LOG(LogTemp, Warning, TEXT("The PlayerInventoryPanel in HUD already set Collapsed"));
 	}
 
 }
