@@ -43,6 +43,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<UInventoryItemSlot> InventorySlotClass;
 
+	bool bIsDragging;
+
+	bool bIsInViewpoint;
 public:
 	UFUNCTION()
 	void RefreshInventory();
