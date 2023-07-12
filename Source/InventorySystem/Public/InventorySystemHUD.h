@@ -69,6 +69,9 @@ protected:
 	UPROPERTY()
 		UWorldInventoryWidget* WorldInventoryWidget;
 
+	UPROPERTY()
+		UInventoryPanel* PlayerInventoryPanel;
+
 protected:
 	virtual void BeginPlay() override;
 };
